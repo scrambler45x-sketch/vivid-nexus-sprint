@@ -7,7 +7,7 @@
       welcomeMessage:
         "Thanks for reaching out! To help our team connect with you, what is your email address?",
       baseUrl: "http://localhost:5000",
-      path: "/api/onboarding/start",
+      path: "/api/chat/stream",
       method: "POST",
     };
 
@@ -16,27 +16,6 @@
     if (document.getElementById("smart-chat-widget-root")) {
       return;
     }
-
-    const sendInputToBackend = async (textMessage) => {
-      try {
-        const response = await fetch(`${settings.baseUrl}${settings.path}`, {
-          method: settings.method,
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            text: textMessage,
-            timestamp: new Date().toISOString(),
-            source: "live_chat_assistant",
-          }),
-        });
-
-        const data = await response.json();
-        console.log("Backend response recieved: ", data);
-      } catch (error) {
-        console.error("Failed to ship webhook to backend: ", error);
-      }
-    };
 
     const stylesheet = document.createElement("style");
     stylesheet.id = "smart-chat-widget-styles";
@@ -207,8 +186,7 @@
     chatApp.id = "smart-chat-widget-root";
     let isTyping = false;
 
-    const chats = [];
-    let currentStep = 0;
+    const conversationHistory = [];
 
     chatApp.innerHTML = `<div class="chatApp-chat-header">
             <div class="chatApp-chat-status-dot"></div>
@@ -237,56 +215,58 @@
       }
     };
 
-    const chatBot = (message) => {
+// New AI Stream Implementation: Translates data chunks to textual string sequences
+    const streamAIResponse = async (message) => {
       isTyping = true;
       setInputDisabledState(true);
-      let fullResponse = "Hello, this is live chat application";
 
-      if (currentStep === 0) {
-        fullResponse = settings.welcomeMessage;
-        currentStep = 1;
-      } else if (currentStep === 1) {
-        if (message.includes("@") && message.includes(".")) {
-          fullResponse =
-            "Perfect! I've received your email. A team representative will contact you shortly.";
-          currentStep = 2;
-        } else {
-          fullResponse =
-            "Hmm, that doesn't look like a valid email address. Could you try typing it again?";
-        }
-      } else {
-        fullResponse =
-          "Our team has been notified! Feel free to ask anything else, or have a wonderful day.";
-      }
+      // Deploy the empty placeholder bot bubble
+      const botBubble = appendBubble("", "bot");
 
-      const bubble = document.createElement("div");
-      bubble.classList.add("chatApp-bot-chat-bubble");
+      try {
+        const response = await fetch(`${settings.baseUrl}${settings.path}`, {
+          method: settings.method,
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            message: message,
+            history: conversationHistory,
+          }),
+        });
 
-      bubble.textContent = "";
+        if (!response.ok) throw new Error("Could not pipe active streaming channel.");
 
-      chatMessagesArea.appendChild(bubble);
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder("utf-8");
+        let accumulatedBotText = "";
 
-      let index = 0;
-      const typeLetter = () => {
-        if (index < fullResponse.length) {
-          bubble.textContent += fullResponse[index];
-          index++;
+        // Core streaming loop consuming byte blocks until data pipeline breaks off
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
 
+          const textChunk = decoder.decode(value, { stream: true });
+          accumulatedBotText += textChunk;
+
+          // Hydrate the visual text target element inside the DOM layout
+          botBubble.textContent = accumulatedBotText;
           chatMessagesArea.scrollTop = chatMessagesArea.scrollHeight;
-
-          setTimeout(typeLetter, 40);
-        } else {
-          chats.push({
-            sender: "bot",
-            message: fullResponse,
-          });
-          isTyping = false;
-          setInputDisabledState(false);
         }
-      };
 
-      typeLetter();
+        // Push conversational turns into the contextual history object
+        conversationHistory.push({ role: 'user', parts: [{ text: message }] });
+        conversationHistory.push({ role: 'model', parts: [{ text: accumulatedBotText }] });
+
+      } catch (error) {
+        console.error("Failed to safely decode backend engine stream payload:", error);
+        botBubble.textContent = "Sorry, I ran into trouble connecting with my server engine.";
+      } finally {
+        isTyping = false;
+        setInputDisabledState(false);
+      }
     };
+
 
     const appendBubble = (message, sender) => {
       const bubble = document.createElement("div");
@@ -300,21 +280,15 @@
     const handleSend = () => {
       if (isTyping) return;
       const chatInput = chatApp.querySelector(".chatApp-chat-input");
-      const userMessage = chatInput.value.trim();
-      console.log(userMessage);
+      const message = chatInput.value.trim();
 
-      if (userMessage.length === 0) return;
+      if (message.length === 0) return;
 
-      chats.push({
-        sender: "user",
-        message: userMessage,
-      });
-      appendBubble(userMessage, "user");
+      appendBubble(message, "user");
       chatInput.value = "";
-      setTimeout(() => chatBot(userMessage), 400);
-      sendInputToBackend(userMessage);
+      streamAIResponse(message);
     };
-
+    
     if (sendButton) {
       sendButton.addEventListener("click", handleSend);
     }

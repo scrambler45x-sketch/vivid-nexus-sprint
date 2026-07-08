@@ -23,8 +23,10 @@ const generateAIStream = async (userMessage, history, onChunk, onDone) => {
 
         // Push text data fragments downstream as they clear the API
         for await (const chunk of responseStream) {
-            if (chunk.text) {
-                onChunk(chunk.text);
+            // FIX: Use the native helper method block to extract text safely without caching buffers
+            const text = chunk.text;
+            if (text) {
+                onChunk(text);
             }
         }
         
