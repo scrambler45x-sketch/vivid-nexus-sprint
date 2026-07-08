@@ -1,5 +1,7 @@
 const express = require('express');
 const cors = require('cors');
+require('dotenv').config(); // Automatically injects configurations from your .env file
+const { handleChatStream } = require('./src/controllers/aiController');
 
 const app = express();
 const PORT = 5000;
@@ -30,6 +32,8 @@ app.post('/api/onboarding/start', (req, res) => {
         message: 'Onboarding logs processed successfully.'
     });
 })
+
+app.post('/api/chat/stream', handleChatStream);
 
 // Start the server listener
 app.listen(PORT, () => {
