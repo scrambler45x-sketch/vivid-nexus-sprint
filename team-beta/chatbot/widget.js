@@ -1,33 +1,46 @@
 (function () {
-    const config = {
-        method: "POST",
-        path: "/api/onboarding/start",
-        baseUrl: "http://localhost:5000"
+  window.initSmartChatWidget = function (userConfig = {}) {
+
+    const defaults = {
+      brandName: "Smart Live Chat Assistant",
+      brandColor: "#00D2FF",
+      backgroundColor: "#0b0f19",
+      welcomeMessage:
+        "Thanks for reaching out! To help our team connect with you, what is your email address?",
+      baseUrl: "http://localhost:5000",
+      path: "/api/onboarding/start",
+      method: 'POST',
+    };
+
+    const settings = { ...defaults, ...userConfig };
+
+    if (document.getElementById("smart-chat-widget-root")) {
+      return;
     }
 
-
     const sendInputToBackend = async (textMessage) => {
-        try {
-            const response = await fetch(`${config.baseUrl}${config.path}`, {
-                method: config.method, 
-                headers: {
-                    "Content-Type": "application/json"
-                }, 
-                body: JSON.stringify({
-                    text: textMessage,
-                    timestamp: new Date().toISOString(),
-                    source: "live_chat_assistant"
-                })
-            });
+      try {
+        const response = await fetch(`${settings.baseUrl}${settings.path}`, {
+          method: settings.method,
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            text: textMessage,
+            timestamp: new Date().toISOString(),
+            source: "live_chat_assistant",
+          }),
+        });
 
-            const data = await response.json();
-            console.log("Backend response recieved: ", data);
-        } catch(error) {
-            console.error("Failed to ship webhook to backend: ", error);
-        }
+        const data = await response.json();
+        console.log("Backend response recieved: ", data);
+      } catch (error) {
+        console.error("Failed to ship webhook to backend: ", error);
+      }
     };
 
     const stylesheet = document.createElement("style");
+    stylesheet.id = "smart-chat-widget-styles";
     stylesheet.textContent = `
             .chat-app {
                 position: fixed;     
@@ -39,7 +52,7 @@
                 max-height: 80vh;
                 
                 /* Color Palette from image_cef5e6.png */
-                background-color: #0b0f19;
+                background-color: ${settings.backgroundColor};
                 border: 1px solid rgba(255, 255, 255, 0.08);
                 border-radius: 16px;
                 box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
@@ -63,10 +76,10 @@
             .chatApp-chat-status-dot {
                 width: 8px;
                 height: 8px;
-                background-color: #00D2FF; /* Vibrant Cyan */
+                background-color: ${settings.brandColor};
                 border-radius: 50%;
                 margin-right: 10px;
-                box-shadow: 0 0 8px #00D2FF;
+                box-shadow: 0 0 8px ${settings.brandColor};
             }
             .chatApp-chat-header h3 {
                 color: #ffffff;
@@ -118,10 +131,10 @@
                 outline: none;
             }
             .chatApp-chat-input:focus {
-                border-color: #00D2FF;
+                border-color: ${settings.brandColor};
             }
             .chatApp-chat-send-btn {
-                background-color: #00D4FF; /* Cyan Accent */
+                background-color: ${settings.brandColor};
                 color: #000000;
                 border: none;
                 border-radius: 8px;
@@ -140,12 +153,12 @@
     const chatApp = document.createElement("div");
     chatApp.classList.add("chat-app");
 
-	const chats = [];
+    const chats = [];
     let currentStep = 0;
 
     chatApp.innerHTML = `<div class="chatApp-chat-header">
             <div class="chatApp-chat-status-dot"></div>
-            <h3>Smart Live Chat Assistant</h3>
+            <h3>${settings.brandName}</h3>
         </div>
         <div class="chatApp-chat-messages">
 					<!-- Messages will be rendered here dynamically -->
@@ -155,88 +168,91 @@
             <button class="chatApp-chat-send-btn" >Send</button>
         </div>`;
 
-	const sendButton = chatApp.querySelector('.chatApp-chat-send-btn');
-    const chatInput = chatApp.querySelector('.chatApp-chat-input');
-	const chatMessagesArea = chatApp.querySelector('.chatApp-chat-messages');
+    const sendButton = chatApp.querySelector(".chatApp-chat-send-btn");
+    const chatInput = chatApp.querySelector(".chatApp-chat-input");
+    const chatMessagesArea = chatApp.querySelector(".chatApp-chat-messages");
 
     const chatBot = (message) => {
-        let fullResponse = "Hello, this is live chat application";
+      let fullResponse = "Hello, this is live chat application";
 
-        if (currentStep === 0) {
-            fullResponse = "Thanks for reaching out! To help our team connect with you, what is your email address?";
-            currentStep = 1;
-        } 
-        else if (currentStep === 1) {
-            if(message.includes('@') && message.includes(".")) {
-                fullResponse = "Perfect! I've received your email. A team representative will contact you shortly.";
-                currentStep = 2;
-            } else {
-                fullResponse = "Hmm, that doesn't look like a valid email address. Could you try typing it again?";
-            }
+      if (currentStep === 0) {
+        fullResponse = settings.welcomeMessage;
+        currentStep = 1;
+      } else if (currentStep === 1) {
+        if (message.includes("@") && message.includes(".")) {
+          fullResponse =
+            "Perfect! I've received your email. A team representative will contact you shortly.";
+          currentStep = 2;
         } else {
-            fullResponse = "Our team has been notified! Feel free to ask anything else, or have a wonderful day.";
+          fullResponse =
+            "Hmm, that doesn't look like a valid email address. Could you try typing it again?";
         }
+      } else {
+        fullResponse =
+          "Our team has been notified! Feel free to ask anything else, or have a wonderful day.";
+      }
 
-        const bubble = document.createElement("div");
-        bubble.classList.add("chatApp-bot-chat-bubble");
+      const bubble = document.createElement("div");
+      bubble.classList.add("chatApp-bot-chat-bubble");
 
-        bubble.textContent = "";
+      bubble.textContent = "";
 
-        chatMessagesArea.appendChild(bubble);
+      chatMessagesArea.appendChild(bubble);
 
-        let index = 0;
-        const typeLetter = () => {
+      let index = 0;
+      const typeLetter = () => {
         if (index < fullResponse.length) {
-            bubble.textContent += fullResponse[index];
-            index++;
+          bubble.textContent += fullResponse[index];
+          index++;
 
-            chatMessagesArea.scrollTop = chatMessagesArea.scrollHeight;
+          chatMessagesArea.scrollTop = chatMessagesArea.scrollHeight;
 
-            setTimeout(typeLetter, 40);
+          setTimeout(typeLetter, 40);
         } else {
-            chats.push({
-            "sender": "bot",
-            "message": fullResponse,
-            });
+          chats.push({
+            sender: "bot",
+            message: fullResponse,
+          });
         }
-        };
+      };
 
-        typeLetter();
+      typeLetter();
     };
 
     const appendBubble = (message, sender) => {
-        const bubble = document.createElement('div');
-        bubble.classList.add(`chatApp-${sender}-chat-bubble`);
-        bubble.textContent = message;
-        chatMessagesArea.appendChild(bubble);
-        chatMessagesArea.scrollTop = chatMessagesArea.scrollHeight;
-        return bubble;
+      const bubble = document.createElement("div");
+      bubble.classList.add(`chatApp-${sender}-chat-bubble`);
+      bubble.textContent = message;
+      chatMessagesArea.appendChild(bubble);
+      chatMessagesArea.scrollTop = chatMessagesArea.scrollHeight;
+      return bubble;
+    };
+
+    const handleSend = () => {
+      const chatInput = chatApp.querySelector(".chatApp-chat-input");
+      const userMessage = chatInput.value.trim();
+      console.log(userMessage);
+
+      if (userMessage.length === 0) return;
+
+      chats.push({
+        sender: "user",
+        message: userMessage,
+      });
+      appendBubble(userMessage, "user");
+      chatInput.value = "";
+      setTimeout(() => chatBot(userMessage), 400);
+      sendInputToBackend(userMessage);
+    };
+
+    if (sendButton) {
+      sendButton.addEventListener("click", handleSend);
     }
 
-	const handleSend = () => {
-		const chatInput = chatApp.querySelector('.chatApp-chat-input');
-		const userMessage = chatInput.value.trim();
-		console.log(userMessage);
-        
-        if(userMessage.length === 0) return;
-
-		chats.push({
-            "sender": "user",
-            "message": userMessage
-        });
-		appendBubble(userMessage, 'user');
-		chatInput.value ="";
-        setTimeout(() => chatBot(userMessage), 400);
-        sendInputToBackend(userMessage);
-	};
-
-	if(sendButton) {
-		sendButton.addEventListener('click', handleSend);
-	}
-
-    chatInput.addEventListener('keydown', (event) => {
-        if (event.key === 'Enter') handleSend()
-    })
+    chatInput.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") handleSend();
+    });
 
     document.body.appendChild(chatApp);
+  };
 })();
