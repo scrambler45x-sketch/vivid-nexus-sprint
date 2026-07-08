@@ -1,6 +1,5 @@
 (function () {
   window.initSmartChatWidget = function (userConfig = {}) {
-
     const defaults = {
       brandName: "Smart Live Chat Assistant",
       brandColor: "#00D2FF",
@@ -9,7 +8,7 @@
         "Thanks for reaching out! To help our team connect with you, what is your email address?",
       baseUrl: "http://localhost:5000",
       path: "/api/onboarding/start",
-      method: 'POST',
+      method: "POST",
     };
 
     const settings = { ...defaults, ...userConfig };
@@ -152,6 +151,17 @@
 
     const chatApp = document.createElement("div");
     chatApp.classList.add("chat-app");
+    chatApp.id = "smart-chat-widget-root";
+    let isTyping = false;
+
+    const setInputDisabledState = (disabledValue) => {
+      chatInput.disabled = disabledValue;
+      sendButton.disabled = disabledValue;
+
+      if (!disabledValue) {
+        chatInput.focus();
+      }
+    };
 
     const chats = [];
     let currentStep = 0;
@@ -173,6 +183,8 @@
     const chatMessagesArea = chatApp.querySelector(".chatApp-chat-messages");
 
     const chatBot = (message) => {
+      isTyping = true;
+      setInputDisabledState(true);
       let fullResponse = "Hello, this is live chat application";
 
       if (currentStep === 0) {
@@ -213,6 +225,8 @@
             sender: "bot",
             message: fullResponse,
           });
+          isTyping = false;
+          setInputDisabledState(false);
         }
       };
 
@@ -229,6 +243,7 @@
     };
 
     const handleSend = () => {
+      if (isTyping) return;
       const chatInput = chatApp.querySelector(".chatApp-chat-input");
       const userMessage = chatInput.value.trim();
       console.log(userMessage);
