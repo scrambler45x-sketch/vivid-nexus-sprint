@@ -85,6 +85,20 @@
                 margin: 0;
                 font-size: 15px;
                 font-weight: 600;
+                flex: 1;
+            }
+            .chatApp-close-btn {
+                background: none;
+                border: none;
+                color: #9ca3af;
+                font-size: 20px;
+                cursor: pointer;
+                padding: 0 0 0 12px;
+                line-height: 1;
+                transition: color 0.2s;
+            }
+            .chatApp-close-btn:hover {
+                color: #ffffff;
             }
 
             /* Message Display Area */
@@ -147,10 +161,48 @@
             #smart-chat-widget-root .chatApp-chat-send-btn:hover {
                 opacity: 0.9;
             }
+            .chat-app.hidden {
+                display: none;
+            }
+
+            .chat-toggle-btn {
+                position: fixed;
+                bottom: 24px;
+                right: 24px;
+                width: 60px;
+                height: 60px;
+                border-radius: 50%;
+                background-color: #00D4FF;
+                border: none;
+                cursor: pointer;
+                box-shadow: 0 4px 20px rgba(0, 212, 255, 0.4);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 9999;
+                transition: transform 0.2s, box-shadow 0.2s;
+                font-size: 28px;
+                color: #000;
+            }
+            .chat-toggle-btn:hover {
+                transform: scale(1.08);
+                box-shadow: 0 6px 28px rgba(0, 212, 255, 0.6);
+            }
+            .chat-toggle-btn.active {
+                background-color: #1f2937;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+                color: #e5e7eb;
+            }
         `;
     document.head.appendChild(stylesheet);
 
     const chatApp = document.createElement("div");
+    
+    chatApp.classList.add("chat-app", "hidden");
+	  const toggleBtn = document.createElement("button");
+    toggleBtn.classList.add("chat-toggle-btn");
+    toggleBtn.textContent = "💬";
+    
     chatApp.classList.add("chat-app");
     chatApp.id = "smart-chat-widget-root";
     let isTyping = false;
@@ -161,6 +213,7 @@
     chatApp.innerHTML = `<div class="chatApp-chat-header">
             <div class="chatApp-chat-status-dot"></div>
             <h3>${settings.brandName}</h3>
+            <button class="chatApp-close-btn">✕</button>
         </div>
         <div class="chatApp-chat-messages">
 					<!-- Messages will be rendered here dynamically -->
@@ -171,6 +224,7 @@
         </div>`;
 
     const sendButton = chatApp.querySelector(".chatApp-chat-send-btn");
+    const closeBtn = chatApp.querySelector('.chatApp-close-btn');
     const chatInput = chatApp.querySelector(".chatApp-chat-input");
     const chatMessagesArea = chatApp.querySelector(".chatApp-chat-messages");
 
@@ -269,6 +323,17 @@
       if (event.key === "Enter") handleSend();
     });
 
+    toggleBtn.addEventListener('click', () => {
+      chatApp.classList.remove('hidden');
+      toggleBtn.classList.add('hidden');
+    });
+
+    closeBtn.addEventListener('click', () => {
+        chatApp.classList.add('hidden');
+        toggleBtn.classList.remove('hidden');
+    });
+
+    document.body.appendChild(toggleBtn);
     document.body.appendChild(chatApp);
   };
 })();
