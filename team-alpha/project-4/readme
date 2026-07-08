@@ -1,1 +1,61 @@
+# Forge & Table — E-commerce Frontend
 
+A single-file React storefront for a kitchen knife and cookware shop, with a working cart, category filters, and an INR-based catalog.
+
+## Features
+
+- Hero section with a technical line-drawing illustration and spec callouts
+- Category filtering (All / Knives / Cookware / Care) via top nav and in-page tabs
+- Product catalog with 11 items, each with material, spec, and price
+- Custom hand-drawn line icons per product (no external images)
+- Slide-in cart drawer with quantity controls, subtotal, and checkout flow
+- Toast notification on "Add to cart"
+- Prices displayed in INR with Indian-style comma formatting
+- Fully self-contained state management using React hooks (no backend required)
+
+## Tech Stack
+
+- React (functional components, hooks: useState, useMemo, useRef, useEffect)
+- lucide-react for icons
+- Inline CSS (via style tag) for full custom design control
+- Google Fonts: Fraunces (display), IBM Plex Sans (body), IBM Plex Mono (specs/UI)
+
+## File Structure
+ForgeAndTable.jsx    - Single-file component containing all logic, styles, and markup
+
+## How to Run
+
+1. Create a new React project (or use an existing one):
+npx create-react-app forge-and-table
+cd forge-and-table
+2. Install the icon library:
+npm install lucide-react
+3. Replace the contents of `src/App.js` with `ForgeAndTable.jsx`, or import it as a component:
+import ForgeAndTable from "./ForgeAndTable";
+export default function App() {
+return <ForgeAndTable />;
+}
+4. Start the dev server:
+npm start
+
+## Customization Notes
+
+- Product data lives in the `PRODUCTS` array near the top of the file. Add, remove, or edit entries here (id, name, category, icon type, material, spec, price, description).
+- Categories are controlled by the `CATEGORIES` array — add a new category name here and tag matching products with it.
+- Colors, fonts, and spacing are defined as CSS variables inside the `style` tag (`--ink`, `--paper`, `--steel`, `--ember`, etc.) — change these to re-theme the whole site.
+- Icons are simple inline SVGs in the `ToolIcon` component — add a new case here for a new product type.
+
+## Known Limitations
+
+- No backend integration — cart and checkout are simulated in local state and reset on page refresh
+- No payment gateway — "Place order" only shows a confirmation screen
+- No product detail page — all product info is shown on the catalog card
+- No persistent storage — cart contents are not saved between sessions
+
+## Possible Next Steps
+
+- Connect to a real backend or headless commerce API
+- Add a product detail view/modal
+- Integrate a payment gateway (Razorpay, Stripe, etc.)
+- Add persistent cart storage
+- Add search functionality
