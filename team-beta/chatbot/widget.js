@@ -41,7 +41,7 @@
     const stylesheet = document.createElement("style");
     stylesheet.id = "smart-chat-widget-styles";
     stylesheet.textContent = `
-            .chat-app {
+            #smart-chat-widget-root {
                 position: fixed;     
                 bottom: 24px;
                 right: 24px;
@@ -65,14 +65,14 @@
             }
 
             /* Header Styling */
-            .chatApp-chat-header {
+            #smart-chat-widget-root .chatApp-chat-header {
                 background-color: #111827;
                 padding: 16px;
                 display: flex;
                 align-items: center;
                 border-bottom: 1px solid rgba(255, 255, 255, 0.08);
             }
-            .chatApp-chat-status-dot {
+            #smart-chat-widget-root .chatApp-chat-status-dot {
                 width: 8px;
                 height: 8px;
                 background-color: ${settings.brandColor};
@@ -80,7 +80,7 @@
                 margin-right: 10px;
                 box-shadow: 0 0 8px ${settings.brandColor};
             }
-            .chatApp-chat-header h3 {
+            #smart-chat-widget-root .chatApp-chat-header h3 {
                 color: #ffffff;
                 margin: 0;
                 font-size: 15px;
@@ -88,7 +88,7 @@
             }
 
             /* Message Display Area */
-            .chatApp-chat-messages {
+            #smart-chat-widget-root .chatApp-chat-messages {
                 flex: 1;
                 padding: 16px;
                 overflow-y: auto;
@@ -96,7 +96,8 @@
                 flex-direction: column;
                 gap: 12px;
             }
-            .chatApp-user-chat-bubble, .chatApp-bot-chat-bubble {
+            #smart-chat-widget-root .chatApp-user-chat-bubble, 
+            #smart-chat-widget-root .chatApp-bot-chat-bubble {
                 background-color: #1f2937;
                 color: #e5e7eb;
                 padding: 10px 14px;
@@ -107,19 +108,19 @@
                 align-self: flex-end;
             }
             
-            .chatApp-bot-chat-bubble {
+            #smart-chat-widget-root .chatApp-bot-chat-bubble {
                 align-self: flex-start;
             }
 
             /* Chat Input Field Container */
-            .chatApp-chat-input-container {
+            #smart-chat-widget-root .chatApp-chat-input-container {
                 padding: 16px;
                 background-color: #111827;
                 border-top: 1px solid rgba(255, 255, 255, 0.08);
                 display: flex;
                 gap: 10px;
             }
-            .chatApp-chat-input {
+            #smart-chat-widget-root .chatApp-chat-input {
                 flex: 1;
                 background-color: #1f2937;
                 border: 1px solid rgba(255, 255, 255, 0.1);
@@ -129,10 +130,10 @@
                 font-size: 14px;
                 outline: none;
             }
-            .chatApp-chat-input:focus {
+            #smart-chat-widget-root .chatApp-chat-input:focus {
                 border-color: ${settings.brandColor};
             }
-            .chatApp-chat-send-btn {
+            #smart-chat-widget-root .chatApp-chat-send-btn {
                 background-color: ${settings.brandColor};
                 color: #000000;
                 border: none;
@@ -143,7 +144,7 @@
                 cursor: pointer;
                 transition: opacity 0.2s;
             }
-            .chatApp-chat-send-btn:hover {
+            #smart-chat-widget-root .chatApp-chat-send-btn:hover {
                 opacity: 0.9;
             }
         `;
@@ -153,15 +154,6 @@
     chatApp.classList.add("chat-app");
     chatApp.id = "smart-chat-widget-root";
     let isTyping = false;
-
-    const setInputDisabledState = (disabledValue) => {
-      chatInput.disabled = disabledValue;
-      sendButton.disabled = disabledValue;
-
-      if (!disabledValue) {
-        chatInput.focus();
-      }
-    };
 
     const chats = [];
     let currentStep = 0;
@@ -181,6 +173,15 @@
     const sendButton = chatApp.querySelector(".chatApp-chat-send-btn");
     const chatInput = chatApp.querySelector(".chatApp-chat-input");
     const chatMessagesArea = chatApp.querySelector(".chatApp-chat-messages");
+
+    const setInputDisabledState = (disabledValue) => {
+      chatInput.disabled = disabledValue;
+      sendButton.disabled = disabledValue;
+
+      if (!disabledValue) {
+        chatInput.focus();
+      }
+    };
 
     const chatBot = (message) => {
       isTyping = true;
