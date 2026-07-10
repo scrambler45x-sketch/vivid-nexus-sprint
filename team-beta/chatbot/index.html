@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Client Landing Page</title>
+
+    <style>
+        body {
+            height: 1000px;
+        }
+
+    </style>
+
+    <script src="./widget.js" defer></script>
+</head>
+<body>
+
+    <h1>Welcome to a Client Website</h1>
+    <p>This page has no built-in chat elements. Your script has to build everything.</p>
+
+    <!-- This is the single script tag that injects your code -->
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            window.initSmartChatWidget({
+                brandName: "Vivid Nexus",
+                brandColor: "green", // Custom crimson theme
+                welcomeMessage: "Welcome to Vivid Nexus. Please share your email to start triage assessment."
+            });
+        });
+    </script>
+</body>
+</html>
