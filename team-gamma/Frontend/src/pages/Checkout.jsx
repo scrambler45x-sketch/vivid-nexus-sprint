@@ -24,11 +24,40 @@ export default function Checkout() {
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
   };
 
-  const handleSubmit = (e) => {
+  const API_URL = "https://vivid-nexus-sprint.onrender.com";
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // No backend is wired up yet — this just confirms the request locally.
-    // Swap this out for a real API call / form service when ready.
-    setSubmitted(true);
+
+    try {
+      const response = await fetch(`${API_URL}/api/leads`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          clientName: form.name,
+          email: form.email,
+          whatsappNumber: form.phone,
+          corporateUrl: "",
+          selectedPlan: plan.title,
+          planPrice: plan.price ? `₹${plan.price}${plan.per ? `/${plan.per}` : ""}` : "",
+          message: form.message,
+          timestamp: new Date().toISOString(),
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to submit lead");
+      }
+
+      setSubmitted(true);
+    } catch (error) {
+      console.error("Lead submission failed:", error);
+      alert("Something went wrong. Please try again or contact us directly.");
+    }
   };
 
   return (
@@ -146,7 +175,7 @@ export default function Checkout() {
               >
                 <Instagram size={16} /> Message on Instagram
               </a>
-              <a href="mailto:hello@vividnexus.in" className="vn-btn vn-btn--ghost">
+              <a href="mailto:ceo@vividnexus.in" className="vn-btn vn-btn--ghost">
                 <Mail size={16} /> Email Our Team
               </a>
             </div>
